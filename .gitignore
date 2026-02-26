@@ -1,0 +1,7 @@
+# Ignore build artifacts
+.DS_Store
+node_modules/
+dist/
+.npm-cache/
+.waylog/
+package-lock.json

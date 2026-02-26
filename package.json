@@ -1,0 +1,47 @@
+{
+  "name": "mermint",
+  "license": "MIT",
+  "type": "module",
+  "version": "0.2.0",
+  "description": "Mint GitHub-ready Mermaid diagrams.",
+  "bin": {
+    "mermint": "./dist/cli.js"
+  },
+  "files": [
+    "dist/**",
+    "assets/**",
+    "README.md",
+    "LICENSE",
+    "LICENSES/**"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "prepare": "tsup",
+    "render": "node dist/cli.js",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^14.0.3",
+    "mermaid": "^11.12.0",
+    "ora": "^9.3.0",
+    "playwright": "^1.52.0",
+    "svg2roughjs": "^3.2.1",
+    "wrap-ansi": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.1",
+    "tsup": "^8.0.2",
+    "typescript": "^5.5.4",
+    "vitest": "^4.0.18"
+  }
+}
