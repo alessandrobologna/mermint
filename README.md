@@ -10,12 +10,18 @@ Mint GitHub-ready Mermaid diagrams.
 
 ## Install
 
-Node 22+ and `pnpm` are required.
+Node 22+ is required.
 
-From GitHub:
+One-off run from GitHub (no global install):
 
 ```bash
-pnpm add -g git+https://github.com/alessandrobologna/mermint.git
+npx --yes git+https://github.com/alessandrobologna/mermint.git --help
+```
+
+Global install from GitHub (`pnpm`):
+
+```bash
+pnpm add -g --allow-build=mermint git+https://github.com/alessandrobologna/mermint.git
 ```
 
 From this repository:
@@ -129,7 +135,7 @@ Most used options:
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-2-dark.svg">
-  <img src="./svgs/readme-2-light.svg" alt="Flowchart diagram" height="601">
+  <img src="./svgs/readme-2-light.svg" alt="Flowchart diagram" height="600">
 </picture>
 </div>
 
@@ -213,7 +219,7 @@ classDiagram
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-5-dark.svg">
-  <img src="./svgs/readme-5-light.svg" alt="Block diagram" height="280">
+  <img src="./svgs/readme-5-light.svg" alt="Block diagram" height="281">
 </picture>
 </div>
 
@@ -248,7 +254,7 @@ columns 1
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-6-dark.svg">
-  <img src="./svgs/readme-6-light.svg" alt="Git diagram" height="316">
+  <img src="./svgs/readme-6-light.svg" alt="Git diagram" height="314">
 </picture>
 </div>
 
@@ -379,6 +385,7 @@ Example source attribution: Mermaid Live Editor examples from [`mermaid-js/merma
 | `--settle-ms <ms>` | `1500` | Extra wait after render (strict integer). |
 | `--timeout-ms <ms>` | `60000` | Playwright timeout in ms (strict integer). |
 | `--headed` | off | Run browser in headed mode. |
+| `-y, --yes` | off | Skip confirmation prompts for in-place markdown overwrite. |
 | `--quiet` | off | Suppress output. |
 | `--no-spinner` | off | Disable spinner output. |
 | `--verbose` | off | Show extra details. |
@@ -388,6 +395,7 @@ Example source attribution: Mermaid Live Editor examples from [`mermaid-js/merma
 - If `--look` is unset, the tool respects `look` from frontmatter/init.
 - Mode inference: diagram (`.mmd`, `.mermaid`), markdown (`.md`, `.markdown`, `.mdx`). Use `--mode` for non-standard extensions.
 - In diagram mode, `--output` is required. In markdown mode, omitting `--output` updates the input file in place.
+- In-place markdown updates ask for confirmation before overwrite. Use `--yes` to bypass the prompt.
 - In hand-drawn mode, Mermaid `look: handDrawn` is normalized to classic before render, then the tool applies a consistent Rough.js pipeline.
 - Rough overrides can be set in source via `x-mermint.rough` (frontmatter/init) with precedence `CLI > source > defaults`.
 - `--look classic` disables hand-drawn rendering and is incompatible with rough overrides.

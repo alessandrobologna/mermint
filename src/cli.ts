@@ -18,6 +18,7 @@ import { UserFacingError, shouldPrintStack, toErrorMessage } from './errors.js';
 import { createUi } from './ui.js';
 import { renderMarkdownFile } from './markdown.js';
 import { renderMermaidLive } from './render.js';
+import { confirmInPlaceMarkdownOverwrite } from './confirm.js';
 import type { IconPackSource, RenderOptions } from './types.js';
 import pkg from '../package.json';
 
@@ -94,6 +95,7 @@ async function main(): Promise<void> {
     .option('--settle-ms <ms>', 'Extra wait after initial render', (value) => parseIntegerOption(value, 'settle-ms'), 1500)
     .option('--timeout-ms <ms>', 'Playwright timeout in ms', (value) => parseIntegerOption(value, 'timeout-ms'), 60000)
     .option('--headed', 'Run browser in headed mode')
+    .option('-y, --yes', 'Skip confirmation prompts for in-place markdown overwrite')
     .optionsGroup('Logging:')
     .option('--quiet', 'Suppress output')
     .option('--no-spinner', 'Disable spinner output')
@@ -242,6 +244,14 @@ async function main(): Promise<void> {
       const resolvedMarkdownOutput = options.output ? resolve(options.output) : undefined;
       const inPlaceMarkdown = !resolvedMarkdownOutput || resolvedMarkdownOutput === resolvedMarkdownPath;
       const keepMermaid = Boolean(options.keepMermaid) || inPlaceMarkdown;
+      if (inPlaceMarkdown) {
+        await confirmInPlaceMarkdownOverwrite({
+          targetPath: resolvedMarkdownPath,
+          keepMermaid,
+          assumeYes: Boolean(options.yes),
+          interactive: Boolean(process.stdin.isTTY)
+        });
+      }
       if (inPlaceMarkdown && !options.keepMermaid) {
         ui.detail('In-place markdown conversion enables Mermaid source preservation by default.');
       }
