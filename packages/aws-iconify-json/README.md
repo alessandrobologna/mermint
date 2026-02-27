@@ -82,8 +82,8 @@ Then use it in Mermaid init/frontmatter:
 
 <div align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../../svgs/readme-1-dark.svg">
-  <img src="../../svgs/readme-1-light.svg" alt="Architecture diagram" height="693">
+  <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-1-dark.svg">
+  <img src="./svgs/readme-1-light.svg" alt="Architecture diagram" height="693">
 </picture>
 </div>
 
