@@ -344,6 +344,7 @@ async function renderDiagramAssets(options: {
   tempRoot: string;
   svgDir: string;
   markdownDir: string;
+  iconPackBaseDir: string;
   renderRuntime: RenderRuntime;
   markdownOptions: MarkdownRenderOptions;
 }): Promise<RenderedDiagramAssets> {
@@ -359,6 +360,7 @@ async function renderDiagramAssets(options: {
       ...options.markdownOptions.renderOptions,
       input: tempFile,
       output: lightPath,
+      iconPackBaseDir: options.iconPackBaseDir,
       theme: options.markdownOptions.lightTheme
     },
     options.renderRuntime,
@@ -370,6 +372,7 @@ async function renderDiagramAssets(options: {
       ...options.markdownOptions.renderOptions,
       input: tempFile,
       output: darkPath,
+      iconPackBaseDir: options.iconPackBaseDir,
       theme: options.markdownOptions.darkTheme
     },
     options.renderRuntime,
@@ -393,6 +396,8 @@ async function renderDiagramAssets(options: {
 }
 
 export async function renderMarkdownFile(options: MarkdownRenderOptions, ui: Ui = silentUi): Promise<MarkdownRenderResult> {
+  const resolvedMarkdownPath = resolve(options.markdownPath);
+  const iconPackBaseDir = dirname(resolvedMarkdownPath);
   const readStep = ui.step('Read Markdown', options.markdownPath);
   const markdown = await readFile(options.markdownPath, 'utf8').then((content) => {
     readStep.succeed();
@@ -490,6 +495,7 @@ export async function renderMarkdownFile(options: MarkdownRenderOptions, ui: Ui 
           tempRoot,
           svgDir,
           markdownDir,
+          iconPackBaseDir,
           renderRuntime: runtime,
           markdownOptions: options
         });

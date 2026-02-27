@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -132,6 +132,64 @@ flowchart LR
       expect((secondPass.match(/<details\b/g) || []).length).toBe(1);
       expect(secondPass).toContain('<details data-mermint-source="true">');
       expect(secondPass).not.toContain('<summary>Source</summary>\n\n<div align="center">');
+    } finally {
+      await rm(tempRoot, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it('resolves relative architecture icon packs from the markdown file directory', async () => {
+    const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-markdown-icon-pack-it-'));
+
+    try {
+      const docsDir = join(tempRoot, 'docs');
+      const markdownPath = join(docsDir, 'README.md');
+      const svgDir = join(tempRoot, 'svgs');
+      const iconPackPath = join(docsDir, 'aws-icons.json');
+      await mkdir(docsDir, { recursive: true });
+
+      await writeFile(
+        iconPackPath,
+        JSON.stringify({
+          prefix: 'aws',
+          icons: {
+            'aws-api-gateway': {
+              body: '<path d="M1 1h22v22H1z" fill="currentColor"/>',
+              width: 24,
+              height: 24
+            }
+          }
+        }),
+        'utf8'
+      );
+
+      const source = `# Architecture
+
+\`\`\`mermaid
+---
+config:
+  architecture:
+    iconPacks:
+      aws: ./aws-icons.json
+---
+architecture-beta
+  group api(aws:aws-api-gateway)[API Layer]
+\`\`\`
+`;
+
+      await writeFile(markdownPath, source, 'utf8');
+
+      const result = await renderMarkdownFile({
+        markdownPath,
+        svgDir,
+        keepMermaid: true,
+        lightTheme: 'default',
+        darkTheme: 'dark',
+        renderOptions: baseRenderOptions
+      });
+
+      expect(result.diagrams).toHaveLength(1);
+      const lightSvg = await readFile(result.diagrams[0].lightPath, 'utf8');
+      expect(lightSvg).toContain('M1 1h22v22H1z');
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }

@@ -234,8 +234,12 @@ function normalizeIconPackCacheKey(spec: IconPackSource): string {
   return `${name}::${resolvedSource}`;
 }
 
-function resolveInputIconPackSources(iconPacks: IconPackSource[], inputPath: string): IconPackSource[] {
-  const inputDir = dirname(inputPath);
+function resolveInputIconPackSources(
+  iconPacks: IconPackSource[],
+  inputPath: string,
+  iconPackBaseDir?: string
+): IconPackSource[] {
+  const inputDir = iconPackBaseDir ? resolve(iconPackBaseDir) : dirname(inputPath);
   return iconPacks.map((pack) => {
     const source = pack.source.trim();
     if (!source) return pack;
@@ -720,7 +724,11 @@ async function renderMermaidLiveWithRuntimeInternal(
   const resolvedLookLower = resolvedLook?.toLowerCase();
   const normalizedHandDrawnInput = stripHandDrawnLookFromInput(code);
   const configuredFontFamily = extractConfiguredFontFamilyFromInput(code);
-  const configuredIconPacks = resolveInputIconPackSources(extractConfiguredIconPacksFromInput(code), inputPath);
+  const configuredIconPacks = resolveInputIconPackSources(
+    extractConfiguredIconPacksFromInput(code),
+    inputPath,
+    resolvedOptions.iconPackBaseDir
+  );
   const configuredRough = extractConfiguredRoughOptionsFromInput(code);
   const mergedIconPacks = mergeConfiguredAndCliIconPacks(configuredIconPacks, resolvedOptions.iconPacks);
 

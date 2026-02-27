@@ -1,0 +1,41 @@
+{
+  "name": "@mermint/aws-iconify-json",
+  "version": "0.1.0",
+  "description": "Build IconifyJSON packs from AWS Architecture Service SVG icons.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "mermint-build-aws-icons": "./dist/cli.js"
+  },
+  "files": [
+    "dist/**",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "prepare": "tsup",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "fflate": "^0.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.1",
+    "tsup": "^8.0.2",
+    "typescript": "^5.5.4",
+    "vitest": "^4.0.18"
+  }
+}

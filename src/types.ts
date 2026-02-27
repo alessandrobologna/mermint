@@ -32,6 +32,7 @@ export interface RoughOptions {
 export interface RenderOptions extends RoughOptions {
   input: string;
   output: string;
+  iconPackBaseDir?: string;
   baseUrl: string;
   theme: string;
   rough: boolean;
