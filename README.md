@@ -55,6 +55,17 @@ mermint \
   --keep-mermaid
 ```
 
+## Codex Skill
+
+This repository also ships a reusable Codex skill at `skills/mermint-markdown-workflow`.
+
+- Use `skills/` for distribution and installation from a repo path.
+- This repo does not use `.agents/skills`, because the skill is intended to be consumed by other repos/users rather than auto-discovered only inside this workspace.
+- If you install skills from GitHub repo paths, point the installer at `skills/mermint-markdown-workflow`.
+- The skill is written to execute `mermint` via `npx --yes git+https://github.com/alessandrobologna/mermint.git ...`, not via a local checkout.
+
+`npx --yes git+https://github.com/alessandrobologna/mermint.git ...` only runs the CLI. It does not install or auto-register the skill, and the current published package does not include `skills/**`.
+
 ## AWS Diagram
 
 <div align="center">
@@ -389,6 +400,87 @@ Example source attribution: Mermaid Live Editor examples from [`mermaid-js/merma
 | `--quiet` | off | Suppress output. |
 | `--no-spinner` | off | Disable spinner output. |
 | `--verbose` | off | Show extra details. |
+
+## Frontmatter / Init Config Reference
+
+`mermint` reads source-level config from either:
+
+- leading YAML frontmatter (`--- ... ---`)
+- Mermaid init directives (`%%{init: {...}}%%`)
+
+Supported keys:
+
+| Key Path | Type | Notes |
+| --- | --- | --- |
+| `config.look` | `classic \| handDrawn` | Used when `--look` is not set. |
+| `config.fontFamily` | string | Used when `--font-family` is not set. |
+| `config.architecture.iconPacks` | mapping (`name: path-or-url`) | For `architecture-beta` icons. |
+| `x-mermint.rough` | object | Source-level Rough.js overrides (see keys below). |
+
+`x-mermint.rough` supports:
+
+- `roughness` (number, `>= 0`)
+- `fillWeight` (number, `>= 0`)
+- `fillStyle` (`hachure`, `solid`, `zigzag`, `cross-hatch`, `dots`, `dashed`, `zigzag-line`)
+- `hachureGap` (number)
+- `hachureAngle` (number)
+- `bowing` (number)
+- `strokeWidth` (number, `>= 0`)
+- `seed` (integer)
+- `disableMultiStroke` (boolean)
+- `disableMultiStrokeFill` (boolean)
+- `preserveVertices` (boolean)
+
+YAML frontmatter example:
+
+```mermaid
+---
+config:
+  look: handDrawn
+  fontFamily: "Virgil, Excalifont, cursive"
+  architecture:
+    iconPacks:
+      aws: ./aws-icons.json
+      logos: https://unpkg.com/@iconify-json/logos@1/icons.json
+x-mermint:
+  rough:
+    roughness: 0.55
+    fillStyle: cross-hatch
+    hachureGap: 1
+    seed: 42
+---
+architecture-beta
+  group api(aws:aws-api-gateway)[API Layer]
+```
+
+Init-directive example:
+
+```mermaid
+%%{init: {
+  "look": "handDrawn",
+  "fontFamily": "Virgil, Excalifont, cursive",
+  "architecture": {
+    "iconPacks": {
+      "aws": "./aws-icons.json"
+    }
+  },
+  "x-mermint": {
+    "rough": {
+      "roughness": 0.55,
+      "seed": 42
+    }
+  }
+}}%%
+flowchart LR
+  A --> B
+```
+
+Configuration behavior:
+
+- Precedence for rough options is `CLI > source config > defaults`.
+- If `--look classic` is set, rough overrides are rejected.
+- Unknown `x-mermint.rough` keys are ignored; invalid values fail rendering.
+- Relative icon pack sources resolve from the diagram input file directory in diagram mode, and from the markdown file directory in markdown mode.
 
 ## Notes
 
