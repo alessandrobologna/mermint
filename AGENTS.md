@@ -29,6 +29,9 @@ npx playwright install
 - `src/ui.ts`: terminal UI output formatting.
 - `tests/*.test.ts`: Vitest suite for parsing, rendering, markdown conversion, and CLI behavior.
 - `assets/`: static assets (including bundled font files).
+- `assets/icon-packs/`: bundled icon packs shipped by the CLI (including the built-in AWS pack).
+- `packages/aws-iconify-json/`: AWS icon-pack builder and source JSON used to refresh the bundled AWS pack.
+- `skills/`: distributable Codex skills that ship with this repo.
 - `svgs/`: generated SVG assets used by README examples.
 
 ## Working Rules
@@ -57,6 +60,11 @@ If behavior around `--keep-mermaid` or overwrite safety changes, update:
 
 - `dist/` is build output and is ignored by git; do not commit it.
 - Avoid touching `svgs/` unless the task explicitly requires refreshing README/example diagrams.
+- If README Mermaid source changes, refresh `README.md` and `svgs/` together with:
+
+```bash
+node dist/cli.js --input README.md --mode markdown --svg-dir svgs --light-theme default --theme dark --keep-mermaid --yes
+```
 
 ## Validation Before Commit
 

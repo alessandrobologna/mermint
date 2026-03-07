@@ -113,7 +113,50 @@ describe('renderMermaidLive integration', () => {
     }
   }, 120000);
 
-  it('loads architecture icon packs from init config without CLI --icon-pack', async () => {
+  it('loads the built-in aws architecture icon pack without explicit config', async () => {
+    const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-built-in-aws-it-'));
+
+    try {
+      const input = join(tempRoot, 'architecture.mmd');
+      const output = join(tempRoot, 'architecture.svg');
+
+      await writeFile(
+        input,
+        `architecture-beta
+  group api(aws:aws-api-gateway)[API Layer]
+`,
+        'utf8'
+      );
+
+      await renderMermaidLive({
+        input,
+        output,
+        baseUrl: 'https://mermaid.live',
+        theme: 'default',
+        rough: false,
+        look: undefined,
+        fontFamily: undefined,
+        fontSize: 13,
+        roughness: undefined,
+        fillWeight: undefined,
+        embedFontPath: undefined,
+        embedFontFamily: undefined,
+        embedExcalifont: true,
+        transparentBg: true,
+        settleMs: 0,
+        timeoutMs: 60000,
+        headed: false
+      });
+
+      const svg = await readFile(output, 'utf8');
+      expect(svg).toContain('fill="#8C4FFF"');
+      expect(svg).toContain('M28 43.9999H31V41.9999H28V43.9999Z');
+    } finally {
+      await rm(tempRoot, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it('lets init config override the built-in aws icon pack', async () => {
     const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-init-icon-pack-it-'));
 
     try {

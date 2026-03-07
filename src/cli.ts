@@ -60,7 +60,7 @@ async function main(): Promise<void> {
     .option('--look <value>', 'Override Mermaid look (classic|handDrawn).', (value) => parseLookOption(value))
     .option(
       '--icon-pack <spec>',
-      'Register Mermaid icon pack (repeatable): name=path-or-url or path-or-url',
+      'Register additional Mermaid icon pack (repeatable): name=path-or-url or path-or-url. Built-in: aws',
       (value, previous: IconPackSource[] = []) => [...previous, parseIconPackOption(value)],
       []
     )

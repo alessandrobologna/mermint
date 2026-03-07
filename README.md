@@ -61,6 +61,12 @@ This repository also ships a reusable Codex skill at `skills/mermint-markdown-wo
 
 - Use `skills/` for distribution and installation from a repo path.
 - This repo does not use `.agents/skills`, because the skill is intended to be consumed by other repos/users rather than auto-discovered only inside this workspace.
+- If you use the Skills CLI, install it with:
+
+```bash
+npx skills add alessandrobologna/mermint@mermint-markdown-workflow
+```
+
 - If you install skills from GitHub repo paths, point the installer at `skills/mermint-markdown-workflow`.
 - The skill is written to execute `mermint` via `npx --yes git+https://github.com/alessandrobologna/mermint.git ...`, not via a local checkout.
 
@@ -71,7 +77,7 @@ This repository also ships a reusable Codex skill at `skills/mermint-markdown-wo
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-1-dark.svg">
-  <img src="./svgs/readme-1-light.svg" alt="Architecture diagram" height="707">
+  <img src="./svgs/readme-1-light.svg" alt="Architecture diagram" height="702">
 </picture>
 </div>
 
@@ -85,9 +91,6 @@ config:
   x-mermint:
     rough:
       hachureGap: 1
-  architecture:
-    iconPacks:
-      aws: https://unpkg.com/@iconify-json/logos@1/icons.json
 ---
 architecture-beta
   group api(aws:aws-api-gateway)[API Layer]
@@ -97,12 +100,12 @@ architecture-beta
   service lambda(aws:aws-lambda)[Lambda] in compute
   junction fanout in compute
 
-  group messaging(aws:aws-sqs)[Messaging]
-  service sqs(aws:aws-sqs)[SQS] in messaging
+  group messaging(aws:simple-queue-service)[Messaging]
+  service sqs(aws:simple-queue-service)[SQS] in messaging
 
-  group data(aws:aws-dynamodb)[Data]
-  service ddb(aws:aws-dynamodb)[DynamoDB] in data
-  service s3(aws:aws-s3)[S3] in data
+  group data(aws:dynamodb)[Data]
+  service ddb(aws:dynamodb)[DynamoDB] in data
+  service s3(aws:simple-storage-service)[S3] in data
   junction datahub in data
 
   apigw:R --> L:lambda
@@ -135,7 +138,7 @@ Most used options:
 | `--light-theme <name>` | Light render theme in markdown mode. |
 | `--svg-dir <dir>` | Choose output directory for markdown-generated SVGs. |
 | `--keep-mermaid` | Keep original Mermaid source in a `<details>` block. |
-| `--icon-pack <spec>` | Load icon packs for architecture/icon syntax. Repeatable. |
+| `--icon-pack <spec>` | Load additional icon packs for architecture/icon syntax. Repeatable. Built-in: `aws`. |
 | `--roughness <value>` | Tune hand-drawn intensity (default: `0.5` when hand-drawn is active). |
 | `--no-transparent-bg` | Keep a visible background instead of transparent output. |
 
@@ -174,7 +177,7 @@ flowchart TD
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-3-dark.svg">
-  <img src="./svgs/readme-3-light.svg" alt="Sequence diagram" height="287">
+  <img src="./svgs/readme-3-light.svg" alt="Sequence diagram" height="288">
 </picture>
 </div>
 
@@ -265,7 +268,7 @@ columns 1
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-6-dark.svg">
-  <img src="./svgs/readme-6-light.svg" alt="Git diagram" height="314">
+  <img src="./svgs/readme-6-light.svg" alt="Git diagram" height="313">
 </picture>
 </div>
 
@@ -350,7 +353,7 @@ Example source attribution: Mermaid Live Editor examples from [`mermaid-js/merma
 | `--mode <diagram\|markdown>` | inferred from `--input` extension | Override mode detection. |
 | `--theme <name>` | diagram: `default` / markdown dark: `dark` | Mermaid theme. |
 | `--look <classic\|handDrawn>` | unset | Override Mermaid look. |
-| `--icon-pack <spec>` | unset | Register icon pack (`name=path-or-url` or `path-or-url`). Repeatable. |
+| `--icon-pack <spec>` | built-in `aws` pack | Register additional icon pack (`name=path-or-url` or `path-or-url`). Repeatable. |
 
 ### Markdown Mode
 
@@ -414,7 +417,7 @@ Supported keys:
 | --- | --- | --- |
 | `config.look` | `classic \| handDrawn` | Used when `--look` is not set. |
 | `config.fontFamily` | string | Used when `--font-family` is not set. |
-| `config.architecture.iconPacks` | mapping (`name: path-or-url`) | For `architecture-beta` icons. |
+| `config.architecture.iconPacks` | mapping (`name: path-or-url`) | Additional `architecture-beta` packs, or overrides for named built-ins such as `aws`. |
 | `x-mermint.rough` | object | Source-level Rough.js overrides (see keys below). |
 
 `x-mermint.rough` supports:
@@ -433,6 +436,16 @@ Supported keys:
 
 YAML frontmatter example:
 
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-8-dark.svg">
+  <img src="./svgs/readme-8-light.svg" alt="Architecture diagram" height="162">
+</picture>
+</div>
+
+<details data-mermint-source="true">
+  <summary>Mermaid source</summary>
+
 ```mermaid
 ---
 config:
@@ -440,8 +453,7 @@ config:
   fontFamily: "Virgil, Excalifont, cursive"
   architecture:
     iconPacks:
-      aws: ./aws-icons.json
-      logos: https://unpkg.com/@iconify-json/logos@1/icons.json
+      aws: ./assets/icon-packs/aws-architecture-service-icons.json
 x-mermint:
   rough:
     roughness: 0.55
@@ -453,7 +465,19 @@ architecture-beta
   group api(aws:aws-api-gateway)[API Layer]
 ```
 
+</details>
+
 Init-directive example:
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-9-dark.svg">
+  <img src="./svgs/readme-9-light.svg" alt="Flowchart diagram" height="101">
+</picture>
+</div>
+
+<details data-mermint-source="true">
+  <summary>Mermaid source</summary>
 
 ```mermaid
 %%{init: {
@@ -461,7 +485,7 @@ Init-directive example:
   "fontFamily": "Virgil, Excalifont, cursive",
   "architecture": {
     "iconPacks": {
-      "aws": "./aws-icons.json"
+      "aws": "./assets/icon-packs/aws-architecture-service-icons.json"
     }
   },
   "x-mermint": {
@@ -475,9 +499,14 @@ flowchart LR
   A --> B
 ```
 
+</details>
+
 Configuration behavior:
 
 - Precedence for rough options is `CLI > source config > defaults`.
+- Built-in icon packs register first. `aws` is always available without configuration.
+- Icon pack precedence on named conflicts is `CLI > source config > built-ins`.
+- To override the built-in AWS pack from the CLI, use `--icon-pack aws=path-or-url`.
 - If `--look classic` is set, rough overrides are rejected.
 - Unknown `x-mermint.rough` keys are ignored; invalid values fail rendering.
 - Relative icon pack sources resolve from the diagram input file directory in diagram mode, and from the markdown file directory in markdown mode.
@@ -491,7 +520,8 @@ Configuration behavior:
 - In hand-drawn mode, Mermaid `look: handDrawn` is normalized to classic before render, then the tool applies a consistent Rough.js pipeline.
 - Rough overrides can be set in source via `x-mermint.rough` (frontmatter/init) with precedence `CLI > source > defaults`.
 - `--look classic` disables hand-drawn rendering and is incompatible with rough overrides.
-- Icon packs can be configured via `--icon-pack` or source config (`architecture.iconPacks`); CLI values win on name conflicts.
+- The built-in `aws` pack is always available for Mermaid architecture diagrams.
+- Icon packs can be configured via `--icon-pack` or source config (`architecture.iconPacks`); CLI values win on named conflicts.
 - Numeric parsing is strict: integer-only flags reject suffixes; rough scalar flags require numeric values.
 
 ## License

@@ -2,6 +2,8 @@
 
 Build [IconifyJSON](https://iconify.design/docs/types/iconify-json.html) packs from AWS Architecture Service SVG icon bundles.
 
+`mermint` bundles the generated AWS pack as a built-in `aws` icon set. This package is for rebuilding that pack from new AWS sources, using the JSON outside `mermint`, or pinning/overriding the built-in pack with your own snapshot.
+
 ## Quick start
 
 ```bash
@@ -12,7 +14,7 @@ cd packages/aws-iconify-json
 pnpm install && pnpm build
 pnpm exec ./dist/cli.js --source /tmp/aws-icons.zip --output /tmp/aws-icons.json
 
-# 3. Use /tmp/aws-icons.json as an Iconify icon pack in Mermaid or any Iconify consumer.
+# 3. Use /tmp/aws-icons.json in a non-mermint Iconify consumer, or override mermint's built-in aws pack with it.
 ```
 
 ## Install the CLI globally
@@ -67,7 +69,53 @@ The output is an [IconifyJSON](https://iconify.design/docs/types/iconify-json.ht
 
 ## Usage with Mermaid
 
-Generate a local icon pack file for Mermaid:
+`mermint` already includes the generated AWS pack as a built-in `aws` icon set, so the simplest path is to reference `aws:<icon>` directly with no extra config:
+
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-1-dark.svg">
+  <img src="./svgs/readme-1-light.svg" alt="Architecture diagram" height="693">
+</picture>
+</div>
+
+<details data-mermint-source="true">
+  <summary>Mermaid source</summary>
+
+```mermaid
+---
+config:
+  look: handDrawn
+  x-mermint:
+    rough:
+      hachureGap: 1
+---
+architecture-beta
+  group ingest(aws:amazon-kinesis)[Ingestion]
+  service kinesis(aws:amazon-kinesis)[Kinesis] in ingest
+  service firehose(aws:amazon-data-firehose)[Firehose] in ingest
+
+  group store(aws:amazon-simple-storage-service)[Storage]
+  service s3(aws:amazon-simple-storage-service)[S3 Data Lake] in store
+
+  group transform(aws:aws-glue)[Transform]
+  service glue(aws:aws-glue)[Glue ETL] in transform
+  service athena(aws:amazon-athena)[Athena] in transform
+
+  group warehouse(aws:amazon-redshift)[Analytics]
+  service redshift(aws:amazon-redshift)[Redshift] in warehouse
+  service grafana(aws:amazon-managed-grafana)[Grafana] in warehouse
+
+  kinesis:R --> L:firehose
+  firehose:B --> T:s3
+  s3:R --> L:glue
+  glue:R --> L:athena
+  athena:B --> T:redshift
+  redshift:R --> L:grafana
+```
+
+</details>
+
+Generate a local icon pack file when you want to pin a specific snapshot, use the pack outside `mermint`, or override the built-in `aws` pack:
 
 ```bash
 cd packages/aws-iconify-json
@@ -78,12 +126,12 @@ pnpm exec ./dist/cli.js \
   --prefix aws
 ```
 
-Then use it in Mermaid init/frontmatter:
+Then override the built-in `aws` pack in Mermaid init/frontmatter:
 
 <div align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-1-dark.svg">
-  <img src="./svgs/readme-1-light.svg" alt="Architecture diagram" height="693">
+  <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-2-dark.svg">
+  <img src="./svgs/readme-2-light.svg" alt="Architecture diagram" height="693">
 </picture>
 </div>
 

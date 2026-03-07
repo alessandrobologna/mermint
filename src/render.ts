@@ -49,6 +49,7 @@ const DEFAULT_HAND_DRAWN_ROUGHNESS = 0.5;
 const DEFAULT_HAND_DRAWN_FONT_FAMILY_WITHOUT_EMBED =
   'virgil, excalifont, segoe print, bradley hand, chalkboard se, marker felt, comic sans ms, cursive';
 const ROUGH_FILL_STYLE_VALUES = new Set<string>(ROUGH_FILL_STYLES);
+const BUILT_IN_AWS_ICON_PACK_NAME = 'aws';
 
 const silentUi: Ui = {
   header: () => undefined,
@@ -391,6 +392,20 @@ function bundledExcalifontPath(): string {
   return resolve(here, '../assets/fonts/Excalifont-Regular.woff2');
 }
 
+function bundledAwsIconPackPath(): string {
+  const here = dirname(fileURLToPath(import.meta.url));
+  return resolve(here, '../assets/icon-packs/aws-architecture-service-icons.json');
+}
+
+function builtInIconPacks(): IconPackSource[] {
+  return [
+    {
+      name: BUILT_IN_AWS_ICON_PACK_NAME,
+      source: bundledAwsIconPackPath()
+    }
+  ];
+}
+
 function validateOptions(options: RenderOptions): void {
   if (!options.input) throw new UserFacingError('Input path is required');
   if (!options.output) throw new UserFacingError('Output path is required');
@@ -730,7 +745,10 @@ async function renderMermaidLiveWithRuntimeInternal(
     resolvedOptions.iconPackBaseDir
   );
   const configuredRough = extractConfiguredRoughOptionsFromInput(code);
-  const mergedIconPacks = mergeConfiguredAndCliIconPacks(configuredIconPacks, resolvedOptions.iconPacks);
+  const usesBuiltInAwsIconPack = /\baws:/i.test(code);
+  const builtInIconPackSources = usesBuiltInAwsIconPack ? builtInIconPacks() : [];
+  const configuredAndBuiltInIconPacks = mergeConfiguredAndCliIconPacks(builtInIconPackSources, configuredIconPacks);
+  const mergedIconPacks = mergeConfiguredAndCliIconPacks(configuredAndBuiltInIconPacks ?? [], resolvedOptions.iconPacks);
 
   if (configuredRough.invalidEntries.length > 0) {
     const details = configuredRough.invalidEntries

@@ -1,4 +1,4 @@
 interface:
   display_name: "Mermint Markdown"
-  short_description: "Render README-style Mermaid markdown with mermint"
-  default_prompt: "Process markdown Mermaid blocks with mermint and refresh light/dark SVG assets safely."
+  short_description: "Render Mermaid markdown and AWS architecture diagrams with mermint"
+  default_prompt: "Process markdown Mermaid blocks with mermint, including README-style output, light/dark SVG assets, and built-in AWS architecture icons."

@@ -9,6 +9,7 @@ description: |
   2. User asks to render/update README diagrams like this repo
   3. User asks to regenerate `svgs/*-light.svg` and `svgs/*-dark.svg` assets
   4. User asks to run idempotent markdown reprocessing with preserved Mermaid source
+  5. User asks to create or update Mermaid `architecture-beta` diagrams with AWS service icons
 ---
 
 # Mermint Markdown Workflow
@@ -88,6 +89,50 @@ This workflow supports source-level Mermaid config in frontmatter/init, includin
 - `config.fontFamily`
 - `config.architecture.iconPacks`
 - `x-mermint.rough`
+
+`mermint` includes a built-in `aws` icon pack for Mermaid architecture diagrams. Use `aws:<icon>` directly without adding a URL or local icon-pack path.
+
+Use `config.architecture.iconPacks` only when you need:
+
+- additional non-AWS icon packs
+- a local override for the built-in `aws` pack
+- a pinned custom AWS pack snapshot
+
+## AWS Architecture Example
+
+Built-in AWS icons with no extra pack config:
+
+```mermaid
+---
+config:
+  look: handDrawn
+---
+architecture-beta
+  group api(aws:aws-api-gateway)[API Layer]
+  service gateway(aws:aws-api-gateway)[API Gateway] in api
+
+  group compute(aws:aws-lambda)[Compute]
+  service lambda(aws:aws-lambda)[Lambda] in compute
+
+  group messaging(aws:simple-queue-service)[Messaging]
+  service queue(aws:simple-queue-service)[SQS] in messaging
+
+  gateway:R --> L:lambda
+  lambda:B --> T:queue
+```
+
+Override the built-in `aws` pack only when needed:
+
+```mermaid
+---
+config:
+  architecture:
+    iconPacks:
+      aws: ./aws-architecture-service-icons.json
+---
+architecture-beta
+  service queue(aws:simple-queue-service)[SQS]
+```
 
 If icon packs use relative paths, they resolve from:
 
