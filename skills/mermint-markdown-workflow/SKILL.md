@@ -98,6 +98,72 @@ Use `config.architecture.iconPacks` only when you need:
 - a local override for the built-in `aws` pack
 - a pinned custom AWS pack snapshot
 
+## Optional Hand-Drawn Tuning
+
+Enable hand-drawn rendering with either:
+
+- `config.look: handDrawn` in frontmatter/init
+- `--look handDrawn` on the CLI
+
+Tune the Rough.js pass with `x-mermint.rough` in source config, or with CLI flags when you want a one-off override.
+
+Supported rough keys:
+
+- `roughness`
+- `fillWeight`
+- `fillStyle`
+- `hachureGap`
+- `hachureAngle`
+- `bowing`
+- `strokeWidth`
+- `seed`
+- `disableMultiStroke`
+- `disableMultiStrokeFill`
+- `preserveVertices`
+
+Important behavior:
+
+- rough precedence is `CLI > source config > defaults`
+- `--look classic` is incompatible with rough overrides
+- built-in `aws` icons work normally in hand-drawn mode
+
+Example with AWS icons and source-level Rough.js tuning:
+
+```mermaid
+---
+config:
+  look: handDrawn
+x-mermint:
+  rough:
+    roughness: 0.55
+    fillStyle: cross-hatch
+    hachureGap: 1
+    bowing: 0.8
+    seed: 42
+---
+architecture-beta
+  group api(aws:aws-api-gateway)[API Layer]
+  service gateway(aws:aws-api-gateway)[API Gateway] in api
+  group compute(aws:aws-lambda)[Compute]
+  service fn(aws:aws-lambda)[Lambda] in compute
+  gateway:R --> L:fn
+```
+
+Equivalent CLI shape for a one-off render:
+
+```bash
+npx --yes git+https://github.com/alessandrobologna/mermint.git \
+  --input README.md \
+  --svg-dir svgs \
+  --keep-mermaid \
+  --look handDrawn \
+  --roughness 0.55 \
+  --fill-style cross-hatch \
+  --hachure-gap 1 \
+  --bowing 0.8 \
+  --seed 42
+```
+
 ## AWS Architecture Example
 
 Built-in AWS icons with no extra pack config:
