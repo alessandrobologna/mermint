@@ -605,81 +605,97 @@ async function renderMermaidSvg(
 ): Promise<{ svg: string; viewport: SvgViewport | null }> {
   await ensureMermaid(page);
 
-  const result = await page.evaluate(
+  const result: { ok: true; svg: string; viewport: SvgViewport | null } | { ok: false; error: string } = await page.evaluate(
     async ({ code, mermaidConfig, padding, githubInitConfig, iconPacks }) => {
-      const mermaid = (globalThis as typeof globalThis & { mermaid?: any }).mermaid;
-      if (!mermaid) {
-        throw new Error('Mermaid runtime not available');
-      }
-
-      if (iconPacks.length > 0) {
-        if (typeof mermaid.registerIconPacks !== 'function') {
-          throw new Error('Mermaid runtime does not support icon pack registration');
-        }
-        const globalState = globalThis as typeof globalThis & {
-          __mermaidGhPressIconPacks?: Record<string, boolean>;
-        };
-        const registered = globalState.__mermaidGhPressIconPacks ?? {};
-
-        for (const pack of iconPacks) {
-          if (registered[pack.name]) continue;
-          mermaid.registerIconPacks([{ name: pack.name, icons: pack.icons }]);
-          registered[pack.name] = true;
+      try {
+        const mermaid = (globalThis as typeof globalThis & { mermaid?: any }).mermaid;
+        if (!mermaid) {
+          throw new Error('Mermaid runtime not available');
         }
 
-        globalState.__mermaidGhPressIconPacks = registered;
-      }
+        if (iconPacks.length > 0) {
+          if (typeof mermaid.registerIconPacks !== 'function') {
+            throw new Error('Mermaid runtime does not support icon pack registration');
+          }
+          const globalState = globalThis as typeof globalThis & {
+            __mermaidGhPressIconPacks?: Record<string, boolean>;
+          };
+          const registered = globalState.__mermaidGhPressIconPacks ?? {};
 
-      mermaid.initialize({ ...githubInitConfig, ...mermaidConfig });
+          for (const pack of iconPacks) {
+            if (registered[pack.name]) continue;
+            mermaid.registerIconPacks([{ name: pack.name, icons: pack.icons }]);
+            registered[pack.name] = true;
+          }
 
-      const renderId = `m-${Math.random().toString(36).slice(2)}`;
-      const { svg } = await mermaid.render(renderId, code);
+          globalState.__mermaidGhPressIconPacks = registered;
+        }
 
-      const container = document.getElementById('container');
-      if (!container) {
-        throw new Error('Render container missing');
-      }
-      container.innerHTML = svg;
+        mermaid.initialize({ ...githubInitConfig, ...mermaidConfig });
 
-      const svgEl = container.querySelector('svg') as SVGSVGElement | null;
-      if (!svgEl) {
-        throw new Error('Mermaid did not produce SVG');
-      }
+        const renderId = `m-${Math.random().toString(36).slice(2)}`;
+        const { svg } = await mermaid.render(renderId, code);
 
-      svgEl.setAttribute('preserveAspectRatio', 'xMinYMin');
-      if (!svgEl.getAttribute('height')) {
-        const viewBox = svgEl.getAttribute('viewBox');
-        if (viewBox) {
-          const parts = viewBox.trim().split(/\s+/).map(Number);
-          if (parts.length === 4 && Number.isFinite(parts[3]) && parts[3] > 0) {
-            svgEl.setAttribute('height', String(parts[3]));
+        const container = document.getElementById('container');
+        if (!container) {
+          throw new Error('Render container missing');
+        }
+        container.innerHTML = svg;
+
+        const svgEl = container.querySelector('svg') as SVGSVGElement | null;
+        if (!svgEl) {
+          throw new Error('Mermaid did not produce SVG');
+        }
+
+        svgEl.setAttribute('preserveAspectRatio', 'xMinYMin');
+        if (!svgEl.getAttribute('height')) {
+          const viewBox = svgEl.getAttribute('viewBox');
+          if (viewBox) {
+            const parts = viewBox.trim().split(/\s+/).map(Number);
+            if (parts.length === 4 && Number.isFinite(parts[3]) && parts[3] > 0) {
+              svgEl.setAttribute('height', String(parts[3]));
+            }
           }
         }
+
+        const viewportEl = (svgEl.querySelector('.svg-pan-zoom_viewport') as SVGGraphicsElement | null) || svgEl;
+        const bbox = viewportEl.getBBox();
+        let viewport: SvgViewport | null = null;
+        const minX = bbox.x - padding;
+        const minY = bbox.y - padding;
+        const maxX = bbox.x + bbox.width + padding;
+        const maxY = bbox.y + bbox.height + padding;
+
+        if ([minX, minY, maxX, maxY].every(Number.isFinite)) {
+          viewport = {
+            minX,
+            minY,
+            width: Math.max(1, maxX - minX),
+            height: Math.max(1, maxY - minY)
+          };
+        }
+
+        return { ok: true, svg: svgEl.outerHTML, viewport };
+      } catch (error) {
+        const candidate =
+          typeof error === 'string'
+            ? error
+            : typeof (error as { message?: unknown } | null)?.message === 'string'
+              ? (error as { message: string }).message
+              : typeof (error as { str?: unknown } | null)?.str === 'string'
+                ? (error as { str: string }).str
+                : 'Mermaid render failed';
+        return { ok: false, error: candidate.trim() || 'Mermaid render failed' };
       }
-
-      const viewportEl = (svgEl.querySelector('.svg-pan-zoom_viewport') as SVGGraphicsElement | null) || svgEl;
-      const bbox = viewportEl.getBBox();
-      let viewport: SvgViewport | null = null;
-      const minX = bbox.x - padding;
-      const minY = bbox.y - padding;
-      const maxX = bbox.x + bbox.width + padding;
-      const maxY = bbox.y + bbox.height + padding;
-
-      if ([minX, minY, maxX, maxY].every(Number.isFinite)) {
-        viewport = {
-          minX,
-          minY,
-          width: Math.max(1, maxX - minX),
-          height: Math.max(1, maxY - minY)
-        };
-      }
-
-      return { svg: svgEl.outerHTML, viewport };
     },
     { code, mermaidConfig, padding, githubInitConfig: GITHUB_LIKE_MERMAID_INIT, iconPacks }
   );
 
-  return result;
+  if (!result.ok) {
+    throw new Error(result.error);
+  }
+
+  return { svg: result.svg, viewport: result.viewport };
 }
 
 export function fontFamilyIncludesExcalifont(fontFamily?: string): boolean {

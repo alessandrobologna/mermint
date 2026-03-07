@@ -222,6 +222,47 @@ architecture-beta
     }
   }, 120000);
 
+  it('surfaces Mermaid parse errors for invalid architecture syntax', async () => {
+    const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-architecture-error-it-'));
+
+    try {
+      const input = join(tempRoot, 'architecture.mmd');
+      const output = join(tempRoot, 'architecture.svg');
+
+      await writeFile(
+        input,
+        `architecture-beta
+  service demoapi(aws:aws-lambda)[demo-api]
+`,
+        'utf8'
+      );
+
+      await expect(
+        renderMermaidLive({
+          input,
+          output,
+          baseUrl: 'https://mermaid.live',
+          theme: 'default',
+          rough: false,
+          look: undefined,
+          fontFamily: undefined,
+          fontSize: 13,
+          roughness: undefined,
+          fillWeight: undefined,
+          embedFontPath: undefined,
+          embedFontFamily: undefined,
+          embedExcalifont: true,
+          transparentBg: true,
+          settleMs: 0,
+          timeoutMs: 60000,
+          headed: false
+        })
+      ).rejects.toThrow(/Parsing failed/);
+    } finally {
+      await rm(tempRoot, { recursive: true, force: true });
+    }
+  }, 120000);
+
   it('rejects negative fill weight values', async () => {
     await expect(
       renderMermaidLive({
