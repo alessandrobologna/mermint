@@ -61,10 +61,10 @@ This repository also ships a reusable Codex skill at `skills/mermint-markdown-wo
 
 - Use `skills/` for distribution and installation from a repo path.
 - This repo does not use `.agents/skills`, because the skill is intended to be consumed by other repos/users rather than auto-discovered only inside this workspace.
-- If you use the Skills CLI, install it with:
+- If you use the Skills CLI, install it globally with:
 
 ```bash
-npx skills add alessandrobologna/mermint@mermint-markdown-workflow
+npx skills add -g alessandrobologna/mermint@mermint-markdown-workflow
 ```
 
 - If you install skills from GitHub repo paths, point the installer at `skills/mermint-markdown-workflow`.
