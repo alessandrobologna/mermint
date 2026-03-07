@@ -92,6 +92,16 @@ This workflow supports source-level Mermaid config in frontmatter/init, includin
 
 `mermint` includes a built-in `aws` icon pack for Mermaid architecture diagrams. Use `aws:<icon>` directly without adding a URL or local icon-pack path.
 
+When generating or revising AWS architecture diagrams, read [references/aws-architecture-icons.md](references/aws-architecture-icons.md) before inventing icon names.
+Prefer concrete AWS service icons over generic Mermaid shapes when the service is known.
+Examples:
+
+- use `aws:simple-storage-service` for S3-style storage instead of `disk`
+- use `aws:dynamodb` for DynamoDB-style state instead of `database`
+- use `aws:simple-queue-service` for SQS instead of a generic queue/storage symbol
+- use `aws:amazon-simple-notification-service` or `aws:simple-notification-service` for SNS
+- fall back to generic Mermaid shapes only when there is no suitable AWS service icon
+
 Use `config.architecture.iconPacks` only when you need:
 
 - additional non-AWS icon packs
