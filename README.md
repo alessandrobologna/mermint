@@ -510,6 +510,7 @@ Configuration behavior:
 - If `--look classic` is set, rough overrides are rejected.
 - Unknown `x-mermint.rough` keys are ignored; invalid values fail rendering.
 - Relative icon pack sources resolve from the diagram input file directory in diagram mode, and from the markdown file directory in markdown mode.
+- Hand-drawn `architecture-beta` diagrams with icon references default to `fillStyle: solid` for icon legibility unless you explicitly set a fill style.
 
 ## Notes
 

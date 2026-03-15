@@ -9,6 +9,13 @@ function extractPathData(svg: string): string[] {
   return [...matches].map((match) => match[1]).sort();
 }
 
+function countMatches(svg: string, pattern: RegExp): number {
+  return [...svg.matchAll(pattern)].length;
+}
+
+const LOW_OPACITY_STROKE_PATH_PATTERN = /<path\b[^>]*stroke-opacity="0\.35"[^>]*>/g;
+const WHITE_FILL_PATTERN = /fill="(?:rgb\(\s*255,\s*255,\s*255\s*\)|#(?:fff|ffffff))"/gi;
+
 describe('renderMermaidLive integration', () => {
   it('enforces opaque background when transparentBg is false in classic rendering', async () => {
     const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-it-'));
@@ -217,6 +224,123 @@ architecture-beta
 
       const svg = await readFile(output, 'utf8');
       expect(svg).toContain('M1 1h22v22H1z');
+    } finally {
+      await rm(tempRoot, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it('defaults hand-drawn architecture icon diagrams to solid fills for legibility', async () => {
+    const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-architecture-solid-it-'));
+
+    try {
+      const input = join(tempRoot, 'architecture.mmd');
+      const output = join(tempRoot, 'architecture.svg');
+
+      await writeFile(
+        input,
+        `---
+config:
+  look: handDrawn
+---
+architecture-beta
+  group api(aws:aws-api-gateway)[API]
+  service rest(aws:aws-api-gateway)[REST API] in api
+`,
+        'utf8'
+      );
+
+      await renderMermaidLive({
+        input,
+        output,
+        baseUrl: 'https://mermaid.live',
+        theme: 'default',
+        rough: false,
+        look: undefined,
+        fontFamily: undefined,
+        fontSize: 13,
+        roughness: undefined,
+        fillWeight: undefined,
+        fillStyle: undefined,
+        hachureGap: undefined,
+        hachureAngle: undefined,
+        bowing: undefined,
+        strokeWidth: undefined,
+        seed: undefined,
+        disableMultiStroke: undefined,
+        disableMultiStrokeFill: undefined,
+        preserveVertices: undefined,
+        embedFontPath: undefined,
+        embedFontFamily: undefined,
+        embedExcalifont: true,
+        transparentBg: true,
+        settleMs: 0,
+        timeoutMs: 60000,
+        headed: false
+      });
+
+      const svg = await readFile(output, 'utf8');
+      expect(countMatches(svg, WHITE_FILL_PATTERN)).toBeGreaterThan(0);
+      expect(countMatches(svg, LOW_OPACITY_STROKE_PATH_PATTERN)).toBeLessThan(2);
+    } finally {
+      await rm(tempRoot, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it('preserves explicit fillStyle overrides for hand-drawn architecture icon diagrams', async () => {
+    const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-architecture-fill-style-it-'));
+
+    try {
+      const input = join(tempRoot, 'architecture.mmd');
+      const output = join(tempRoot, 'architecture.svg');
+
+      await writeFile(
+        input,
+        `---
+config:
+  look: handDrawn
+x-mermint:
+  rough:
+    fillStyle: hachure
+---
+architecture-beta
+  group api(aws:aws-api-gateway)[API]
+  service rest(aws:aws-api-gateway)[REST API] in api
+`,
+        'utf8'
+      );
+
+      await renderMermaidLive({
+        input,
+        output,
+        baseUrl: 'https://mermaid.live',
+        theme: 'default',
+        rough: false,
+        look: undefined,
+        fontFamily: undefined,
+        fontSize: 13,
+        roughness: undefined,
+        fillWeight: undefined,
+        fillStyle: undefined,
+        hachureGap: undefined,
+        hachureAngle: undefined,
+        bowing: undefined,
+        strokeWidth: undefined,
+        seed: undefined,
+        disableMultiStroke: undefined,
+        disableMultiStrokeFill: undefined,
+        preserveVertices: undefined,
+        embedFontPath: undefined,
+        embedFontFamily: undefined,
+        embedExcalifont: true,
+        transparentBg: true,
+        settleMs: 0,
+        timeoutMs: 60000,
+        headed: false
+      });
+
+      const svg = await readFile(output, 'utf8');
+      expect(countMatches(svg, WHITE_FILL_PATTERN)).toBe(0);
+      expect(countMatches(svg, LOW_OPACITY_STROKE_PATH_PATTERN)).toBeGreaterThan(1);
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }

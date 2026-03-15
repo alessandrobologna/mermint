@@ -136,6 +136,7 @@ Important behavior:
 - rough precedence is `CLI > source config > defaults`
 - `--look classic` is incompatible with rough overrides
 - built-in `aws` icons work normally in hand-drawn mode
+- hand-drawn `architecture-beta` diagrams with icon references default to `fillStyle: solid` for icon legibility unless you explicitly set a fill style
 
 Example with AWS icons and source-level Rough.js tuning:
 
@@ -177,6 +178,11 @@ npx --yes git+https://github.com/alessandrobologna/mermint.git \
 ## AWS Architecture Example
 
 Built-in AWS icons with no extra pack config:
+
+Legibility note:
+
+- if you use hand-drawn mode with architecture icons and do not specify `fillStyle`, `mermint` now defaults those diagrams to `fillStyle: solid`
+- set `x-mermint.rough.fillStyle` or `--fill-style` explicitly if you want hachure, cross-hatch, or another Rough.js fill style instead
 
 ```mermaid
 ---
