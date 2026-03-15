@@ -2,7 +2,7 @@
   "name": "mermint",
   "license": "MIT",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Mint GitHub-ready Mermaid diagrams.",
   "bin": {
     "mermint": "./dist/cli.js"

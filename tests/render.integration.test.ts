@@ -222,6 +222,121 @@ architecture-beta
     }
   }, 120000);
 
+  it('defaults hand-drawn architecture icon diagrams to solid fills for legibility', async () => {
+    const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-architecture-solid-it-'));
+
+    try {
+      const input = join(tempRoot, 'architecture.mmd');
+      const output = join(tempRoot, 'architecture.svg');
+
+      await writeFile(
+        input,
+        `---
+config:
+  look: handDrawn
+---
+architecture-beta
+  group api(aws:aws-api-gateway)[API]
+  service rest(aws:aws-api-gateway)[REST API] in api
+`,
+        'utf8'
+      );
+
+      await renderMermaidLive({
+        input,
+        output,
+        baseUrl: 'https://mermaid.live',
+        theme: 'default',
+        rough: false,
+        look: undefined,
+        fontFamily: undefined,
+        fontSize: 13,
+        roughness: undefined,
+        fillWeight: undefined,
+        fillStyle: undefined,
+        hachureGap: undefined,
+        hachureAngle: undefined,
+        bowing: undefined,
+        strokeWidth: undefined,
+        seed: undefined,
+        disableMultiStroke: undefined,
+        disableMultiStrokeFill: undefined,
+        preserveVertices: undefined,
+        embedFontPath: undefined,
+        embedFontFamily: undefined,
+        embedExcalifont: true,
+        transparentBg: true,
+        settleMs: 0,
+        timeoutMs: 60000,
+        headed: false
+      });
+
+      const svg = await readFile(output, 'utf8');
+      expect(svg).toContain('fill="rgb(140, 79, 255)"');
+    } finally {
+      await rm(tempRoot, { recursive: true, force: true });
+    }
+  }, 120000);
+
+  it('preserves explicit fillStyle overrides for hand-drawn architecture icon diagrams', async () => {
+    const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-architecture-fill-style-it-'));
+
+    try {
+      const input = join(tempRoot, 'architecture.mmd');
+      const output = join(tempRoot, 'architecture.svg');
+
+      await writeFile(
+        input,
+        `---
+config:
+  look: handDrawn
+x-mermint:
+  rough:
+    fillStyle: hachure
+---
+architecture-beta
+  group api(aws:aws-api-gateway)[API]
+  service rest(aws:aws-api-gateway)[REST API] in api
+`,
+        'utf8'
+      );
+
+      await renderMermaidLive({
+        input,
+        output,
+        baseUrl: 'https://mermaid.live',
+        theme: 'default',
+        rough: false,
+        look: undefined,
+        fontFamily: undefined,
+        fontSize: 13,
+        roughness: undefined,
+        fillWeight: undefined,
+        fillStyle: undefined,
+        hachureGap: undefined,
+        hachureAngle: undefined,
+        bowing: undefined,
+        strokeWidth: undefined,
+        seed: undefined,
+        disableMultiStroke: undefined,
+        disableMultiStrokeFill: undefined,
+        preserveVertices: undefined,
+        embedFontPath: undefined,
+        embedFontFamily: undefined,
+        embedExcalifont: true,
+        transparentBg: true,
+        settleMs: 0,
+        timeoutMs: 60000,
+        headed: false
+      });
+
+      const svg = await readFile(output, 'utf8');
+      expect(svg).not.toContain('fill="rgb(140, 79, 255)"');
+    } finally {
+      await rm(tempRoot, { recursive: true, force: true });
+    }
+  }, 120000);
+
   it('surfaces Mermaid parse errors for invalid architecture syntax', async () => {
     const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-architecture-error-it-'));
 

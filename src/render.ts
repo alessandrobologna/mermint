@@ -50,6 +50,7 @@ const DEFAULT_HAND_DRAWN_FONT_FAMILY_WITHOUT_EMBED =
   'virgil, excalifont, segoe print, bradley hand, chalkboard se, marker felt, comic sans ms, cursive';
 const ROUGH_FILL_STYLE_VALUES = new Set<string>(ROUGH_FILL_STYLES);
 const BUILT_IN_AWS_ICON_PACK_NAME = 'aws';
+const ARCHITECTURE_ICON_REFERENCE_REGEX = /\([A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+\)/;
 
 const silentUi: Ui = {
   header: () => undefined,
@@ -404,6 +405,10 @@ function builtInIconPacks(): IconPackSource[] {
       source: bundledAwsIconPackPath()
     }
   ];
+}
+
+function usesArchitectureIconReferences(code: string): boolean {
+  return /\barchitecture-beta\b/i.test(code) && ARCHITECTURE_ICON_REFERENCE_REGEX.test(code);
 }
 
 function validateOptions(options: RenderOptions): void {
@@ -761,6 +766,7 @@ async function renderMermaidLiveWithRuntimeInternal(
     resolvedOptions.iconPackBaseDir
   );
   const configuredRough = extractConfiguredRoughOptionsFromInput(code);
+  const usesArchitectureIcons = usesArchitectureIconReferences(code);
   const usesBuiltInAwsIconPack = /\baws:/i.test(code);
   const builtInIconPackSources = usesBuiltInAwsIconPack ? builtInIconPacks() : [];
   const configuredAndBuiltInIconPacks = mergeConfiguredAndCliIconPacks(builtInIconPackSources, configuredIconPacks);
@@ -794,6 +800,10 @@ async function renderMermaidLiveWithRuntimeInternal(
     : {};
   if (usesHandDrawnPipeline && effectiveRoughOptions.roughness === undefined) {
     effectiveRoughOptions.roughness = DEFAULT_HAND_DRAWN_ROUGHNESS;
+  }
+  if (usesHandDrawnPipeline && usesArchitectureIcons && effectiveRoughOptions.fillStyle === undefined) {
+    effectiveRoughOptions.fillStyle = 'solid';
+    ui.detail('Detected architecture icons in hand-drawn mode; defaulted rough fillStyle to solid for icon legibility.');
   }
   validateRoughOptions(effectiveRoughOptions);
   const shouldStripHandDrawnLook = usesHandDrawnPipeline || resolvedLookLower === 'classic';
