@@ -9,6 +9,13 @@ function extractPathData(svg: string): string[] {
   return [...matches].map((match) => match[1]).sort();
 }
 
+function countMatches(svg: string, pattern: RegExp): number {
+  return [...svg.matchAll(pattern)].length;
+}
+
+const LOW_OPACITY_STROKE_PATH_PATTERN = /<path\b[^>]*stroke-opacity="0\.35"[^>]*>/g;
+const WHITE_FILL_PATTERN = /fill="(?:rgb\(\s*255,\s*255,\s*255\s*\)|#(?:fff|ffffff))"/gi;
+
 describe('renderMermaidLive integration', () => {
   it('enforces opaque background when transparentBg is false in classic rendering', async () => {
     const tempRoot = await mkdtemp(join(tmpdir(), 'mermint-render-it-'));
@@ -272,7 +279,8 @@ architecture-beta
       });
 
       const svg = await readFile(output, 'utf8');
-      expect(svg).toContain('fill="rgb(140, 79, 255)"');
+      expect(countMatches(svg, WHITE_FILL_PATTERN)).toBeGreaterThan(0);
+      expect(countMatches(svg, LOW_OPACITY_STROKE_PATH_PATTERN)).toBeLessThan(2);
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }
@@ -331,7 +339,8 @@ architecture-beta
       });
 
       const svg = await readFile(output, 'utf8');
-      expect(svg).not.toContain('fill="rgb(140, 79, 255)"');
+      expect(countMatches(svg, WHITE_FILL_PATTERN)).toBe(0);
+      expect(countMatches(svg, LOW_OPACITY_STROKE_PATH_PATTERN)).toBeGreaterThan(1);
     } finally {
       await rm(tempRoot, { recursive: true, force: true });
     }
