@@ -221,6 +221,35 @@ If icon packs use relative paths, they resolve from:
 - diagram mode: directory of the input `.mmd` file
 - markdown mode: directory of the markdown file
 
+## `architecture-beta` Guardrails
+
+`architecture-beta` is less predictable than simpler Mermaid diagram types. A render can succeed and still produce an unusable layout.
+
+Prefer these constraints when creating or revising architecture diagrams:
+
+- keep labels short and conservative
+- avoid slash-heavy or punctuation-heavy labels unless you render-test them
+- avoid decorative edge labels unless they carry essential meaning
+- use `junction` for optional branches or fan-out instead of forcing extra direct edges between services
+
+Recommended optional-branch pattern:
+
+```mermaid
+architecture-beta
+  service relay(aws:kinesis-data-streams)[Relay]
+  junction fanout
+  service collector(aws:amazon-opensearch-service)[Collector]
+  service archive(aws:simple-storage-service)[Archive]
+
+  relay:R --> L:fanout
+  fanout:T --> B:collector
+  fanout:B --> T:archive
+```
+
+Fallback rule:
+
+- if `architecture-beta` still overlaps after one conservative rewrite, stop and either simplify further with a junction-based branch or ask whether to switch to `flowchart` while preserving the architecture meaning
+
 ## Verification Checklist
 
 After rendering:
@@ -237,6 +266,8 @@ rg -n "data-mermint-source=\"true\"" README.md
 ```bash
 ls -la svgs
 ```
+4. For `architecture-beta`, visually inspect at least one rendered SVG or screenshot.
+   A successful render is not enough if labels are unreadable or nodes still overlap.
 
 ## Failure Recovery
 
@@ -246,5 +277,12 @@ ls -la svgs
 ```bash
 npx playwright install
 ```
+- If the error says `Executable doesn't exist at .../chromium_headless_shell-<rev>/...`, a generic `npx playwright install` may have installed the wrong browser revision for the Playwright version that `mermint` resolved.
+- In a local checkout, install the headless shell with the exact Playwright version from `node_modules` instead of relying on an unpinned CLI:
+```bash
+PLAYWRIGHT_VERSION=$(node -p "require('./node_modules/playwright/package.json').version")
+npx --yes playwright@$PLAYWRIGHT_VERSION install chromium-headless-shell
+```
+- If you are running `mermint` via `npx --yes git+https://github.com/alessandrobologna/mermint.git ...` and still hit the same `chromium_headless_shell-<rev>` error, do not keep retrying an unpinned `npx playwright install`. Re-run with a version-pinned Playwright CLI or switch to a local checkout long enough to discover the resolved version first.
 - If verification uses `rg` and it is unavailable, use `grep` instead.
 - If rendering fails due to invalid source rough config, fix `x-mermint.rough` values in source or remove conflicting `--look classic`.

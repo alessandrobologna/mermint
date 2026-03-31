@@ -38,6 +38,8 @@ If Playwright browsers are not installed yet:
 npx playwright install
 ```
 
+If you get `Executable doesn't exist at .../chromium_headless_shell-<rev>/...`, a generic `npx playwright install` may have installed the wrong browser revision. Re-run the install with the exact Playwright version this project resolved instead of relying on an unpinned Playwright CLI.
+
 ## Quickstart
 
 Render one Mermaid file:
@@ -523,6 +525,7 @@ Configuration behavior:
 - `--look classic` disables hand-drawn rendering and is incompatible with rough overrides.
 - The built-in `aws` pack is always available for Mermaid architecture diagrams.
 - Icon packs can be configured via `--icon-pack` or source config (`architecture.iconPacks`); CLI values win on named conflicts.
+- `architecture-beta` layout is weakly constrained. Keep labels short, avoid punctuation-heavy labels unless render-tested, prefer `junction` for optional branches, and visually inspect the rendered SVG because a successful render can still overlap.
 - Numeric parsing is strict: integer-only flags reject suffixes; rough scalar flags require numeric values.
 
 ## License
