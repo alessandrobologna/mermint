@@ -8,7 +8,7 @@ These instructions apply to the whole repo.
 
 ## Environment
 
-- Node.js: `>=22`
+- Node.js: `>=22.16.0`
 - Package manager: `pnpm`
 - Install dependencies: `pnpm install`
 - Build: `pnpm run build`
