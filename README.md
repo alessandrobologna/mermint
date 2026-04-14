@@ -10,7 +10,7 @@ Mint GitHub-ready Mermaid diagrams.
 
 ## Install
 
-Node 22+ is required.
+Node 22.16.0+ is required.
 
 One-off run from GitHub (no global install):
 
