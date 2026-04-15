@@ -275,13 +275,9 @@ async function main(): Promise<void> {
       ui.success(`Updated ${result.outputPath}`);
       ui.detail(`SVGs saved to ${result.svgDir}`);
     } else {
-      if (!outputPath) {
-        throw new UserFacingError('--output is required in diagram mode');
-      }
-
       const renderOptions: RenderOptions = {
         input: inputPath,
-        output: outputPath,
+        output: outputPath as string,
         theme: resolvedTheme,
         ...baseRenderOptions
       };

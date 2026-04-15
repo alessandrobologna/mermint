@@ -11,7 +11,8 @@ on:
     branches:
       - main
 
-permissions: {}
+permissions:
+  contents: read
 
 concurrency:
   group: quality-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -102,9 +103,52 @@ jobs:
           )
 
           tar -xzf "$workdir/$archive" -C "$workdir"
+          mkdir -p "$HOME/.local/bin"
           install "$workdir/actionlint" "$HOME/.local/bin/actionlint"
           echo "$HOME/.local/bin" >>"$GITHUB_PATH"
           "$HOME/.local/bin/actionlint" -version
+
+      - name: Validate workflow shell blocks
+        run: |
+          set -euo pipefail
+
+          ruby <<'RUBY'
+          require 'yaml'
+          require 'tmpdir'
+
+          workflow_paths = Dir.glob('.github/workflows/*.yml').sort
+
+          Dir.mktmpdir('workflow-bash-n-') do |dir|
+            workflow_paths.each do |workflow_path|
+              workflow = YAML.load_file(workflow_path)
+              next unless workflow.is_a?(Hash)
+
+              jobs = workflow.fetch('jobs', {})
+              next unless jobs.is_a?(Hash)
+
+              jobs.each_value do |job|
+                next unless job.is_a?(Hash)
+
+                steps = job.fetch('steps', [])
+                next unless steps.is_a?(Array)
+
+                steps.each_with_index do |step, index|
+                  next unless step.is_a?(Hash)
+
+                  script = step['run']
+                  next unless script.is_a?(String)
+
+                  path = File.join(dir, "#{File.basename(workflow_path)}-step-#{index + 1}.sh")
+                  File.write(path, script)
+                  ok = system('bash', '-n', path)
+                  abort("bash -n failed for #{workflow_path} step #{index + 1}") unless ok
+                end
+              end
+            end
+          end
+
+          puts 'workflow shell syntax ok'
+          RUBY
 
       - name: Validate root package
         run: |
