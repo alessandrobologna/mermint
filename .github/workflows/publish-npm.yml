@@ -40,6 +40,14 @@ jobs:
           node-version: '22.16.0'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Upgrade npm for trusted publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npm install --global npm@11.12.1
+          npm --version
+
       - name: Derive package metadata
         id: metadata
         shell: bash
@@ -142,7 +150,12 @@ jobs:
           exit "$status"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pnpm install --frozen-lockfile
+          pnpm --dir packages/aws-iconify-json install --frozen-lockfile
 
       - name: Validate repository
         shell: bash
@@ -160,7 +173,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          npm publish --tag '${{ github.event.inputs.npm_tag }}'
+          npm publish --provenance --tag '${{ github.event.inputs.npm_tag }}'
 
       - name: Verify published version
         shell: bash
@@ -169,12 +182,37 @@ jobs:
 
           package_name='${{ steps.metadata.outputs.package_name }}'
           package_version='${{ steps.metadata.outputs.package_version }}'
+          delays=(0 2 5 10 20)
+          published_version=''
+          last_output=''
 
-          published_version="$(npm view "${package_name}@${package_version}" version)"
-          if [[ "$published_version" != "$package_version" ]]; then
-            echo "Expected published version ${package_version}, got ${published_version}." >&2
-            exit 1
+          for i in "${!delays[@]}"; do
+            if [[ "$i" -gt 0 ]]; then
+              sleep "${delays[$i]}"
+            fi
+
+            set +e
+            last_output="$(npm view "${package_name}@${package_version}" version 2>&1)"
+            status=$?
+            set -e
+
+            if [[ "$status" -eq 0 ]]; then
+              published_version="$last_output"
+              if [[ "$published_version" == "$package_version" ]]; then
+                exit 0
+              fi
+            fi
+
+            echo "Attempt $((i + 1))/${#delays[@]}: ${package_name}@${package_version} is not yet visible with the expected version on npm." >&2
+          done
+
+          if [[ -n "$published_version" ]]; then
+            echo "Expected published version ${package_version}, got ${published_version} after ${#delays[@]} attempts." >&2
+          else
+            echo "npm view did not confirm ${package_name}@${package_version} after ${#delays[@]} attempts." >&2
+            echo "$last_output" >&2
           fi
+          exit 1
 
       - name: Tag release
         shell: bash
