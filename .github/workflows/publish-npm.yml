@@ -59,10 +59,12 @@ jobs:
           package_repository="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).repository?.url ?? ''")"
           release_tag="v${package_version}"
 
-          printf 'package_name=%s\n' "$package_name" >>"$GITHUB_OUTPUT"
-          printf 'package_version=%s\n' "$package_version" >>"$GITHUB_OUTPUT"
-          printf 'package_repository=%s\n' "$package_repository" >>"$GITHUB_OUTPUT"
-          printf 'release_tag=%s\n' "$release_tag" >>"$GITHUB_OUTPUT"
+          {
+            printf 'package_name=%s\n' "$package_name"
+            printf 'package_version=%s\n' "$package_version"
+            printf 'package_repository=%s\n' "$package_repository"
+            printf 'release_tag=%s\n' "$release_tag"
+          } >>"$GITHUB_OUTPUT"
 
       - name: Validate release target
         shell: bash

@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -20,7 +21,9 @@ import { renderMarkdownFile } from './markdown.js';
 import { renderMermaidLive } from './render.js';
 import { confirmInPlaceMarkdownOverwrite } from './confirm.js';
 import type { IconPackSource, RenderOptions } from './types.js';
-import pkg from '../package.json';
+
+const require = createRequire(import.meta.url);
+const pkg = require('../package.json') as { version: string };
 
 function bundledExcalifontPath(): string {
   const here = dirname(fileURLToPath(import.meta.url));
@@ -136,11 +139,11 @@ async function main(): Promise<void> {
     const resolvedTheme = rawTheme || 'default';
     const resolvedDarkTheme = rawTheme || 'dark';
 
-    let embedFontPath: string | undefined = options.embedFont || undefined;
-    let embedFontFamily: string | undefined = options.embedFontFamily || undefined;
+    let embedFontPath = typeof options.embedFont === 'string' ? options.embedFont : undefined;
+    let embedFontFamily = typeof options.embedFontFamily === 'string' ? options.embedFontFamily : undefined;
     const roughness = options.roughness !== undefined ? Number(options.roughness) : undefined;
     const fillWeight = options.fillWeight !== undefined ? Number(options.fillWeight) : undefined;
-    const fillStyle = options.fillStyle !== undefined ? String(options.fillStyle) : undefined;
+    const fillStyle = options.fillStyle as RenderOptions['fillStyle'] | undefined;
     const hachureGap = options.hachureGap !== undefined ? Number(options.hachureGap) : undefined;
     const hachureAngle = options.hachureAngle !== undefined ? Number(options.hachureAngle) : undefined;
     const bowing = options.bowing !== undefined ? Number(options.bowing) : undefined;
@@ -192,7 +195,7 @@ async function main(): Promise<void> {
     const fontFamily = options.fontFamily?.trim() || embedFontFamily || (useExcalifont ? 'Excalifont' : undefined);
 
     const baseRenderOptions = {
-      baseUrl: options.baseUrl,
+      baseUrl: typeof options.baseUrl === 'string' ? options.baseUrl : 'https://mermaid.live',
       rough,
       roughness,
       fillWeight,
@@ -219,6 +222,7 @@ async function main(): Promise<void> {
     } satisfies Omit<RenderOptions, 'input' | 'output' | 'theme'>;
 
     const inputPath = typeof options.input === 'string' ? options.input.trim() : '';
+    const outputPath = typeof options.output === 'string' && options.output.trim() ? options.output.trim() : undefined;
     if (!inputPath) {
       throw new UserFacingError('--input is required');
     }
@@ -235,13 +239,13 @@ async function main(): Promise<void> {
       .map(([, flag]) => flag);
     validateModeSpecificOptions({
       mode,
-      output: options.output as string | undefined,
+      output: outputPath,
       markdownOnlyOptions
     });
 
     if (mode === 'markdown') {
       const resolvedMarkdownPath = resolve(inputPath);
-      const resolvedMarkdownOutput = options.output ? resolve(options.output) : undefined;
+      const resolvedMarkdownOutput = outputPath ? resolve(outputPath) : undefined;
       const inPlaceMarkdown = !resolvedMarkdownOutput || resolvedMarkdownOutput === resolvedMarkdownPath;
       const keepMermaid = Boolean(options.keepMermaid) || inPlaceMarkdown;
       if (inPlaceMarkdown) {
@@ -273,7 +277,7 @@ async function main(): Promise<void> {
     } else {
       const renderOptions: RenderOptions = {
         input: inputPath,
-        output: options.output,
+        output: outputPath as string,
         theme: resolvedTheme,
         ...baseRenderOptions
       };
@@ -284,7 +288,7 @@ async function main(): Promise<void> {
     }
   } catch (error) {
     ui.error(toErrorMessage(error));
-    if (shouldPrintStack(error, Boolean(options.verbose)) && error instanceof Error) {
+    if (shouldPrintStack(error, Boolean(options.verbose)) && error instanceof Error && typeof error.stack === 'string') {
       ui.detail(error.stack);
     }
     process.exitCode = 1;
@@ -299,7 +303,7 @@ main().catch((error) => {
     verbose
   });
   fallbackUi.error(toErrorMessage(error));
-  if (shouldPrintStack(error, verbose) && error instanceof Error) {
+  if (shouldPrintStack(error, verbose) && error instanceof Error && typeof error.stack === 'string') {
     fallbackUi.detail(error.stack);
   }
   process.exitCode = 1;
