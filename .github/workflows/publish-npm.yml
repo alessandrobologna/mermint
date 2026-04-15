@@ -160,6 +160,13 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm --dir packages/aws-iconify-json install --frozen-lockfile
 
+      - name: Install Playwright Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pnpm exec playwright install --with-deps chromium
+
       - name: Validate repository
         shell: bash
         run: |
