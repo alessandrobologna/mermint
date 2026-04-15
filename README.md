@@ -12,16 +12,16 @@ Mint GitHub-ready Mermaid diagrams.
 
 Node 22.16.0+ is required.
 
-One-off run from GitHub (no global install):
+One-off run from npm:
 
 ```bash
-npx --yes git+https://github.com/alessandrobologna/mermint.git --help
+npx mermint@latest --help
 ```
 
-Global install from GitHub (`pnpm`):
+Global install from npm (`pnpm`):
 
 ```bash
-pnpm add -g --allow-build=mermint git+https://github.com/alessandrobologna/mermint.git
+pnpm add -g --allow-build=mermint mermint
 ```
 
 From this repository:
@@ -534,8 +534,9 @@ Maintainers publish `mermint` with the manual `Publish npm package` GitHub Actio
 
 - Run the workflow from `main`.
 - The workflow reads `name` and `version` directly from the root `package.json`.
+- The workflow publishes from the `npm-publish` GitHub Actions environment.
 - It validates the repo state, publishes to npm, and only tags the repo as `v<version>` after publish succeeds.
-- One-time setup: configure npm trusted publishing for this repository and the `.github/workflows/publish-npm.yml` workflow file.
+- One-time setup: create the `npm-publish` GitHub Actions environment and configure npm trusted publishing for this repository, the `.github/workflows/publish-npm.yml` workflow file, and the `npm-publish` environment name.
 
 ## License
 
