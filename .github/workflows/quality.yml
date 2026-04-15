@@ -116,11 +116,36 @@ jobs:
           require 'yaml'
           require 'tmpdir'
 
+          def load_workflow(path)
+            YAML.safe_load(
+              File.read(path),
+              permitted_classes: [],
+              permitted_symbols: [],
+              aliases: false
+            )
+          end
+
+          def effective_shell(workflow, job, step)
+            step['shell'] || job.dig('defaults', 'run', 'shell') || workflow.dig('defaults', 'run', 'shell') || 'bash'
+          end
+
+          def syntax_shell(shell)
+            return 'bash' if shell.nil?
+            return 'bash' if shell.match?(/\bbash\b/i)
+            return 'sh' if shell.match?(/\bsh\b/i)
+
+            nil
+          end
+
+          def normalize_github_expressions(script)
+            script.gsub(/\$\{\{.*?\}\}/m, '__GITHUB_EXPR__')
+          end
+
           workflow_paths = Dir.glob('.github/workflows/*.yml').sort
 
           Dir.mktmpdir('workflow-bash-n-') do |dir|
             workflow_paths.each do |workflow_path|
-              workflow = YAML.load_file(workflow_path)
+              workflow = load_workflow(workflow_path)
               next unless workflow.is_a?(Hash)
 
               jobs = workflow.fetch('jobs', {})
@@ -137,11 +162,13 @@ jobs:
 
                   script = step['run']
                   next unless script.is_a?(String)
+                  shell = syntax_shell(effective_shell(workflow, job, step))
+                  next unless shell
 
                   path = File.join(dir, "#{File.basename(workflow_path)}-step-#{index + 1}.sh")
-                  File.write(path, script)
-                  ok = system('bash', '-n', path)
-                  abort("bash -n failed for #{workflow_path} step #{index + 1}") unless ok
+                  File.write(path, normalize_github_expressions(script))
+                  ok = system(shell, '-n', path)
+                  abort("#{shell} -n failed for #{workflow_path} step #{index + 1}") unless ok
                 end
               end
             end
