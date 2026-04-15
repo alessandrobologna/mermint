@@ -528,6 +528,15 @@ Configuration behavior:
 - `architecture-beta` layout is weakly constrained. Keep labels short, avoid punctuation-heavy labels unless render-tested, prefer `junction` for optional branches, and visually inspect the rendered SVG because a successful render can still overlap.
 - Numeric parsing is strict: integer-only flags reject suffixes; rough scalar flags require numeric values.
 
+## Release
+
+Maintainers publish `mermint` with the manual `Publish npm package` GitHub Actions workflow.
+
+- Run the workflow from `main`.
+- The workflow reads `name` and `version` directly from the root `package.json`.
+- It validates the repo state, publishes to npm, and only tags the repo as `v<version>` after publish succeeds.
+- One-time setup: configure npm trusted publishing for this repository and the `.github/workflows/publish-npm.yml` workflow file.
+
 ## License
 
 Project license: `MIT` (see `LICENSE`).
