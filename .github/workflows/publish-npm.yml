@@ -18,6 +18,7 @@ jobs:
   publish:
     name: Publish mermint to npm and tag release
     runs-on: ubuntu-latest
+    environment: npm-publish
     permissions:
       contents: write
       id-token: write
