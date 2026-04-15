@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          npx playwright install --with-deps chromium
+          pnpm exec playwright install --with-deps chromium
 
       - name: Install actionlint
         run: |

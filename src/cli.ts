@@ -222,7 +222,7 @@ async function main(): Promise<void> {
     } satisfies Omit<RenderOptions, 'input' | 'output' | 'theme'>;
 
     const inputPath = typeof options.input === 'string' ? options.input.trim() : '';
-    const outputPath = typeof options.output === 'string' && options.output.trim() ? options.output : undefined;
+    const outputPath = typeof options.output === 'string' && options.output.trim() ? options.output.trim() : undefined;
     if (!inputPath) {
       throw new UserFacingError('--input is required');
     }
