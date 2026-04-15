@@ -1,0 +1,202 @@
+name: Publish npm package
+
+on:
+  workflow_dispatch:
+    inputs:
+      npm_tag:
+        description: npm dist-tag to publish under
+        required: true
+        default: 'latest'
+
+permissions: {}
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish mermint to npm and tag release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+        with:
+          version: '10.33.0'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+          node-version: '22.16.0'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Derive package metadata
+        id: metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_name="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).name")"
+          package_version="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
+          package_repository="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).repository?.url ?? ''")"
+          release_tag="v${package_version}"
+
+          printf 'package_name=%s\n' "$package_name" >>"$GITHUB_OUTPUT"
+          printf 'package_version=%s\n' "$package_version" >>"$GITHUB_OUTPUT"
+          printf 'package_repository=%s\n' "$package_repository" >>"$GITHUB_OUTPUT"
+          printf 'release_tag=%s\n' "$release_tag" >>"$GITHUB_OUTPUT"
+
+      - name: Validate release target
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          default_branch='${{ github.event.repository.default_branch }}'
+          release_tag='${{ steps.metadata.outputs.release_tag }}'
+          package_repository='${{ steps.metadata.outputs.package_repository }}'
+          expected_repository='git+https://github.com/${{ github.repository }}.git'
+
+          if [[ "$GITHUB_REF_TYPE" != "branch" ]]; then
+            echo "This workflow must run from a branch ref." >&2
+            exit 1
+          fi
+
+          if [[ "$GITHUB_REF_NAME" != "$default_branch" ]]; then
+            echo "This workflow must run from ${default_branch}, got ${GITHUB_REF_NAME}." >&2
+            exit 1
+          fi
+
+          if [[ "$package_repository" != "$expected_repository" ]]; then
+            echo "package.json repository.url must be ${expected_repository}, got ${package_repository}." >&2
+            exit 1
+          fi
+
+          git fetch --force --tags origin "$default_branch"
+          remote_sha="$(git rev-parse "origin/${default_branch}")"
+
+          if [[ "$GITHUB_SHA" != "$remote_sha" ]]; then
+            echo "Workflow is not running on the latest origin/${default_branch} tip." >&2
+            echo "Current workflow SHA: $GITHUB_SHA" >&2
+            echo "Latest origin/${default_branch}: $remote_sha" >&2
+            exit 1
+          fi
+
+          if git rev-parse -q --verify "refs/tags/${release_tag}" >/dev/null; then
+            echo "Tag ${release_tag} already exists locally." >&2
+            exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${release_tag}" >/dev/null 2>&1; then
+            echo "Tag ${release_tag} already exists on origin." >&2
+            exit 1
+          fi
+
+      - name: Validate npm dist-tag input
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npm_tag='${{ github.event.inputs.npm_tag }}'
+
+          if [[ ! "$npm_tag" =~ ^[[:alnum:]][[:alnum:]._-]*$ ]]; then
+            echo "Invalid npm dist-tag: ${npm_tag}" >&2
+            exit 1
+          fi
+
+      - name: Ensure package version is not already published
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_name='${{ steps.metadata.outputs.package_name }}'
+          package_version='${{ steps.metadata.outputs.package_version }}'
+          stderr_file="$(mktemp)"
+          trap 'rm -f "$stderr_file"' EXIT
+
+          set +e
+          npm view "${package_name}@${package_version}" version >/dev/null 2>"$stderr_file"
+          status=$?
+          set -e
+
+          if [[ "$status" -eq 0 ]]; then
+            echo "${package_name}@${package_version} is already published." >&2
+            exit 1
+          fi
+
+          if [[ "$status" -eq 1 ]] && grep -q 'E404' "$stderr_file"; then
+            exit 0
+          fi
+
+          echo "npm view failed unexpectedly while checking ${package_name}@${package_version}." >&2
+          cat "$stderr_file" >&2
+          exit "$status"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate repository
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          pnpm test
+          pnpm run build
+          node dist/cli.js --help >/dev/null
+          pnpm --dir packages/aws-iconify-json test
+          pnpm --dir packages/aws-iconify-json run build
+
+      - name: Publish package to npm
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npm publish --tag '${{ github.event.inputs.npm_tag }}'
+
+      - name: Verify published version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_name='${{ steps.metadata.outputs.package_name }}'
+          package_version='${{ steps.metadata.outputs.package_version }}'
+
+          published_version="$(npm view "${package_name}@${package_version}" version)"
+          if [[ "$published_version" != "$package_version" ]]; then
+            echo "Expected published version ${package_version}, got ${published_version}." >&2
+            exit 1
+          fi
+
+      - name: Tag release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          release_tag='${{ steps.metadata.outputs.release_tag }}'
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -a "$release_tag" -m "Release $release_tag" "$GITHUB_SHA"
+          git push origin "refs/tags/${release_tag}"
+
+      - name: Summarize release
+        shell: bash
+        run: |
+          {
+            echo "### Published npm release"
+            echo
+            echo "- Package: \`${{ steps.metadata.outputs.package_name }}\`"
+            echo "- Version: \`${{ steps.metadata.outputs.package_version }}\`"
+            echo "- npm dist-tag: \`${{ github.event.inputs.npm_tag }}\`"
+            echo "- Git tag: \`${{ steps.metadata.outputs.release_tag }}\`"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+          } >>"$GITHUB_STEP_SUMMARY"

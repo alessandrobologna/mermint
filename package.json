@@ -4,6 +4,10 @@
   "type": "module",
   "version": "0.2.1",
   "description": "Mint GitHub-ready Mermaid diagrams.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alessandrobologna/mermint.git"
+  },
   "bin": {
     "mermint": "./dist/cli.js"
   },
