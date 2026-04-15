@@ -1,0 +1,143 @@
+name: Quality checks
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+        with:
+          version: '10.33.0'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            packages/aws-iconify-json/pnpm-lock.yaml
+          node-version: '22.16.0'
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+
+          pnpm install --frozen-lockfile
+          pnpm --dir packages/aws-iconify-json install --frozen-lockfile
+
+      - name: Validate committed diff
+        run: |
+          set -euo pipefail
+
+          if [[ '${{ github.event_name }}' == 'pull_request' ]]; then
+            base_sha='${{ github.event.pull_request.base.sha }}'
+            git diff --check "${base_sha}...${GITHUB_SHA}"
+            exit 0
+          fi
+
+          before_sha='${{ github.event.before }}'
+          if [[ "$before_sha" =~ ^0+$ ]]; then
+            echo 'Skipping committed diff check for initial branch push.'
+            exit 0
+          fi
+
+          git diff --check "${before_sha}..${GITHUB_SHA}"
+
+      - name: Install Playwright Chromium
+        run: |
+          set -euo pipefail
+
+          npx playwright install --with-deps chromium
+
+      - name: Install actionlint
+        run: |
+          set -euo pipefail
+
+          version='1.7.8'
+          archive="actionlint_${version}_linux_amd64.tar.gz"
+          checksums="actionlint_${version}_checksums.txt"
+          base_url="https://github.com/rhysd/actionlint/releases/download/v${version}"
+          workdir="$(mktemp -d)"
+          trap 'rm -rf "$workdir"' EXIT
+
+          curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
+            --output "$workdir/$archive" \
+            "$base_url/$archive"
+          curl --fail --location --silent --show-error --retry 3 --retry-all-errors \
+            --output "$workdir/$checksums" \
+            "$base_url/$checksums"
+
+          grep "  ${archive}\$" "$workdir/$checksums" >"$workdir/checksum.txt"
+          (
+            cd "$workdir"
+            sha256sum --check --status checksum.txt
+          )
+
+          tar -xzf "$workdir/$archive" -C "$workdir"
+          install "$workdir/actionlint" "$HOME/.local/bin/actionlint"
+          echo "$HOME/.local/bin" >>"$GITHUB_PATH"
+          "$HOME/.local/bin/actionlint" -version
+
+      - name: Validate root package
+        run: |
+          set -euo pipefail
+
+          pnpm exec tsc --noEmit -p tsconfig.json
+          pnpm test
+          pnpm run build
+          node dist/cli.js --help >/dev/null
+          npm pack --dry-run --ignore-scripts >/dev/null
+
+      - name: Validate aws iconify package
+        run: |
+          set -euo pipefail
+
+          pnpm --dir packages/aws-iconify-json exec tsc --noEmit -p tsconfig.json
+          pnpm --dir packages/aws-iconify-json test
+          pnpm --dir packages/aws-iconify-json run build
+          (
+            cd packages/aws-iconify-json
+            npm pack --dry-run --ignore-scripts >/dev/null
+          )
+
+      - name: Validate GitHub workflows
+        run: |
+          set -euo pipefail
+
+          actionlint .github/workflows/*.yml
+
+      - name: Verify tracked files stay clean
+        run: |
+          set -euo pipefail
+
+          git update-index -q --refresh
+          git diff --check
+          git diff --exit-code
