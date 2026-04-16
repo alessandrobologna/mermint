@@ -79,7 +79,7 @@ npx skills add -g alessandrobologna/mermint@mermint-markdown-workflow
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-1-dark.svg">
-  <img src="./svgs/readme-1-light.svg" alt="Architecture diagram" height="702">
+  <img src="./svgs/readme-1-light.svg" alt="Architecture diagram" height="707">
 </picture>
 </div>
 
@@ -151,7 +151,7 @@ Most used options:
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-2-dark.svg">
-  <img src="./svgs/readme-2-light.svg" alt="Flowchart diagram" height="600">
+  <img src="./svgs/readme-2-light.svg" alt="Flowchart diagram" height="601">
 </picture>
 </div>
 
@@ -179,7 +179,7 @@ flowchart TD
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-3-dark.svg">
-  <img src="./svgs/readme-3-light.svg" alt="Sequence diagram" height="288">
+  <img src="./svgs/readme-3-light.svg" alt="Sequence diagram" height="287">
 </picture>
 </div>
 
@@ -235,7 +235,7 @@ classDiagram
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-5-dark.svg">
-  <img src="./svgs/readme-5-light.svg" alt="Block diagram" height="281">
+  <img src="./svgs/readme-5-light.svg" alt="Block diagram" height="292">
 </picture>
 </div>
 
@@ -270,7 +270,7 @@ columns 1
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-6-dark.svg">
-  <img src="./svgs/readme-6-light.svg" alt="Git diagram" height="313">
+  <img src="./svgs/readme-6-light.svg" alt="Git diagram" height="314">
 </picture>
 </div>
 
