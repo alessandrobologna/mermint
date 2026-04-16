@@ -79,7 +79,7 @@ npx skills add -g alessandrobologna/mermint@mermint-markdown-workflow
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-1-dark.svg">
-  <img src="./svgs/readme-1-light.svg" alt="Architecture diagram" height="707">
+  <img src="./svgs/readme-1-light.svg" alt="Architecture diagram">
 </picture>
 </div>
 
@@ -151,7 +151,7 @@ Most used options:
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-2-dark.svg">
-  <img src="./svgs/readme-2-light.svg" alt="Flowchart diagram" height="601">
+  <img src="./svgs/readme-2-light.svg" alt="Flowchart diagram">
 </picture>
 </div>
 
@@ -179,7 +179,7 @@ flowchart TD
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-3-dark.svg">
-  <img src="./svgs/readme-3-light.svg" alt="Sequence diagram" height="287">
+  <img src="./svgs/readme-3-light.svg" alt="Sequence diagram">
 </picture>
 </div>
 
@@ -205,7 +205,7 @@ sequenceDiagram
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-4-dark.svg">
-  <img src="./svgs/readme-4-light.svg" alt="Class diagram" height="348">
+  <img src="./svgs/readme-4-light.svg" alt="Class diagram">
 </picture>
 </div>
 
@@ -235,7 +235,7 @@ classDiagram
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-5-dark.svg">
-  <img src="./svgs/readme-5-light.svg" alt="Block diagram" height="292">
+  <img src="./svgs/readme-5-light.svg" alt="Block diagram">
 </picture>
 </div>
 
@@ -270,7 +270,7 @@ columns 1
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-6-dark.svg">
-  <img src="./svgs/readme-6-light.svg" alt="Git diagram" height="314">
+  <img src="./svgs/readme-6-light.svg" alt="Git diagram">
 </picture>
 </div>
 
@@ -306,7 +306,7 @@ gitGraph
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-7-dark.svg">
-  <img src="./svgs/readme-7-light.svg" alt="Kanban diagram" height="291">
+  <img src="./svgs/readme-7-light.svg" alt="Kanban diagram">
 </picture>
 </div>
 
@@ -441,7 +441,7 @@ YAML frontmatter example:
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-8-dark.svg">
-  <img src="./svgs/readme-8-light.svg" alt="Architecture diagram" height="162">
+  <img src="./svgs/readme-8-light.svg" alt="Architecture diagram">
 </picture>
 </div>
 
@@ -474,7 +474,7 @@ Init-directive example:
 <div align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./svgs/readme-9-dark.svg">
-  <img src="./svgs/readme-9-light.svg" alt="Flowchart diagram" height="101">
+  <img src="./svgs/readme-9-light.svg" alt="Flowchart diagram">
 </picture>
 </div>
 

@@ -49,7 +49,6 @@ interface RenderedDiagramAssets {
   darkPath: string;
   relativeLight: string;
   relativeDark: string;
-  imgHeight?: number;
   alt: string;
 }
 
@@ -175,15 +174,13 @@ function buildPictureBlock(
   relativeLight: string,
   alt: string,
   keepMermaid: boolean,
-  code: string,
-  imgHeight?: number
+  code: string
 ): string[] {
-  const heightAttr = Number.isFinite(imgHeight) ? ` height="${Math.max(1, Math.round(Number(imgHeight)))}"` : '';
   const lines = [
     '<div align="center">',
     '<picture>',
     `  <source media="(prefers-color-scheme: dark)" srcset="${relativeDark}">`,
-    `  <img src="${relativeLight}" alt="${alt}"${heightAttr}>`,
+    `  <img src="${relativeLight}" alt="${alt}">`,
     '</picture>',
     '</div>'
   ];
@@ -221,26 +218,6 @@ function isFenceLine(line: string): { indent: string; fence: string; info: strin
 
 function isClosingFence(line: string, fence: string): boolean {
   return line.trim().startsWith(fence);
-}
-
-function extractSvgViewBoxHeight(svg: string): number | undefined {
-  const viewBoxMatch = svg.match(/\bviewBox="([^"]+)"/i);
-  if (viewBoxMatch) {
-    const parts = viewBoxMatch[1].trim().split(/\s+/).map(Number);
-    if (parts.length === 4 && Number.isFinite(parts[3]) && parts[3] > 0) {
-      return Math.round(parts[3]);
-    }
-  }
-
-  const heightMatch = svg.match(/\bheight="([0-9.]+)"/i);
-  if (heightMatch) {
-    const parsed = Number(heightMatch[1]);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return Math.round(parsed);
-    }
-  }
-
-  return undefined;
 }
 
 function isDetailsOpen(line: string): boolean {
@@ -381,8 +358,6 @@ async function renderDiagramAssets(options: {
 
   const relativeLight = normalizeMarkdownPath(relative(options.markdownDir, lightPath));
   const relativeDark = normalizeMarkdownPath(relative(options.markdownDir, darkPath));
-  const lightSvg = await readFile(lightPath, 'utf8');
-  const imgHeight = extractSvgViewBoxHeight(lightSvg);
   const alt = inferDiagramAlt(options.code, options.diagramIndex);
 
   return {
@@ -390,7 +365,6 @@ async function renderDiagramAssets(options: {
     darkPath,
     relativeLight,
     relativeDark,
-    imgHeight,
     alt
   };
 }
@@ -507,8 +481,7 @@ export async function renderMarkdownFile(options: MarkdownRenderOptions, ui: Ui 
           assets.relativeLight,
           assets.alt,
           options.keepMermaid,
-          candidate.code,
-          assets.imgHeight
+          candidate.code
         );
         outputLines.push(...indentLines(pictureLines, candidate.indent));
         diagrams.push({
