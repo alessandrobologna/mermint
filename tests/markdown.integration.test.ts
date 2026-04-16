@@ -75,6 +75,7 @@ sequenceDiagram
       expect(output).toContain('<picture>');
       expect(output).toContain('alt="Flowchart diagram"');
       expect(output).toContain('alt="Sequence diagram"');
+      expect(output).not.toMatch(/<img[^>]*\sheight="/);
 
       for (const diagram of result.diagrams) {
         const lightStat = await stat(diagram.lightPath);
